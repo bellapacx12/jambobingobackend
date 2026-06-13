@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"beteseb-bingo/backend/internal/config"
+	"jambo-bingo/backend/internal/config"
 
 	"github.com/redis/go-redis/v9"
 )

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"jambo-bingo/backend/internal/config"
+
 	"github.com/jackc/pgx/v5/pgxpool"
-	"beteseb-bingo/backend/internal/config"
 )
 
 type DB struct {

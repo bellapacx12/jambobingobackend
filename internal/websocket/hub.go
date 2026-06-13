@@ -8,11 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"jambo-bingo/backend/internal/database"
+	"jambo-bingo/backend/internal/models"
+	"jambo-bingo/backend/internal/services"
+	"jambo-bingo/backend/internal/utils"
+
 	"github.com/gofiber/contrib/v3/websocket"
-	"beteseb-bingo/backend/internal/database"
-	"beteseb-bingo/backend/internal/models"
-	"beteseb-bingo/backend/internal/services"
-	"beteseb-bingo/backend/internal/utils"
 )
 
 // Client represents a connected WebSocket client

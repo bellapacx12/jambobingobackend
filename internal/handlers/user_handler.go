@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"jambo-bingo/backend/internal/middleware"
+	"jambo-bingo/backend/internal/services"
+
 	"github.com/gofiber/fiber/v3"
-	"beteseb-bingo/backend/internal/middleware"
-	"beteseb-bingo/backend/internal/services"
 )
 
 type UserHandler struct {

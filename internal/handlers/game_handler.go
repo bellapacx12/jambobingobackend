@@ -3,8 +3,9 @@ package handlers
 import (
 	"strconv"
 
+	"jambo-bingo/backend/internal/services"
+
 	"github.com/gofiber/fiber/v3"
-	"beteseb-bingo/backend/internal/services"
 )
 
 type GameHandler struct {

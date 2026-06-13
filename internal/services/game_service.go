@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"jambo-bingo/backend/internal/database"
+	"jambo-bingo/backend/internal/models"
+	"jambo-bingo/backend/internal/utils"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"beteseb-bingo/backend/internal/database"
-	"beteseb-bingo/backend/internal/models"
-	"beteseb-bingo/backend/internal/utils"
 )
 
 type GameService struct {

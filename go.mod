@@ -1,4 +1,4 @@
-module beteseb-bingo/backend
+module jambo-bingo/backend
 
 go 1.25.0
 

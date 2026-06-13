@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"beteseb-bingo/backend/internal/database"
-	"beteseb-bingo/backend/internal/models"
+	"jambo-bingo/backend/internal/database"
+	"jambo-bingo/backend/internal/models"
 
 	"github.com/jackc/pgx/v5"
 )

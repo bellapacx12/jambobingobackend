@@ -13,12 +13,12 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 
-	"beteseb-bingo/backend/internal/config"
-	"beteseb-bingo/backend/internal/database"
-	"beteseb-bingo/backend/internal/handlers"
-	"beteseb-bingo/backend/internal/middleware"
-	"beteseb-bingo/backend/internal/services"
-	wshub "beteseb-bingo/backend/internal/websocket"
+	"jambo-bingo/backend/internal/config"
+	"jambo-bingo/backend/internal/database"
+	"jambo-bingo/backend/internal/handlers"
+	"jambo-bingo/backend/internal/middleware"
+	"jambo-bingo/backend/internal/services"
+	wshub "jambo-bingo/backend/internal/websocket"
 )
 
 func main() {
@@ -78,7 +78,7 @@ AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-T
 	app.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status":    "healthy",
-			"service":   "beteseb-bingo",
+			"service":   "jambo-bingo",
 			"timestamp": time.Now().Unix(),
 		})
 	})
