@@ -45,6 +45,7 @@ type TelegramConfig struct {
 type SecurityConfig struct {
 	JWTSecret   string
 	HMACSecret  string
+	BOTServiceToken string
 }
 
 type GameConfig struct {
@@ -69,7 +70,7 @@ func Load() (*Config, error) {
 	cfg.Database.MaxConns = int32(getEnvInt("DB_MAX_CONNS", 25))
 	cfg.Database.MinConns = int32(getEnvInt("DB_MIN_CONNS", 5))
 	cfg.Database.MaxConnTTL = time.Hour
-
+    cfg.Security.BOTServiceToken = getEnv("BOT_SERVICE_TOKEN", "")
 	// Redis - Parse URL properly
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL != "" {

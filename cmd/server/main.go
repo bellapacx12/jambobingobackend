@@ -105,7 +105,12 @@ AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-T
 	protected.Get("/games/active", gameHandler.GetActiveGame)
 	protected.Get("/games/:user_id/history", gameHandler.GetHistory)
 	protected.Get("/games/:user_id/stats", gameHandler.GetStats)
-
+    
+	// Bot service routes (no JWT, uses X-Bot-Service-Token)
+botRoutes := api.Group("/bot")
+botRoutes.Use(middleware.BotAuthMiddleware(cfg.Security.BOTServiceToken))
+botRoutes.Get("/wallets/:user_id/balance", walletHandler.GetBalance)
+botRoutes.Get("/users/telegram/:telegram_id", userHandler.GetProfile)  // if you added this
 	// WebSocket route
 	app.Use("/ws", func(c fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
