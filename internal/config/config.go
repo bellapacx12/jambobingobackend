@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9" // Add this import
 )
 
 type Config struct {
@@ -69,10 +70,23 @@ func Load() (*Config, error) {
 	cfg.Database.MinConns = int32(getEnvInt("DB_MIN_CONNS", 5))
 	cfg.Database.MaxConnTTL = time.Hour
 
-	// Redis
-	cfg.Redis.Addr = getEnv("REDIS_URL", "localhost:6379")
-	cfg.Redis.Password = getEnv("REDIS_PASSWORD", "")
-	cfg.Redis.DB = getEnvInt("REDIS_DB", 0)
+	// Redis - Parse URL properly
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL != "" {
+		// Parse the Redis URL to extract components
+		opts, err := redis.ParseURL(redisURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse REDIS_URL: %w", err)
+		}
+		cfg.Redis.Addr = opts.Addr
+		cfg.Redis.Password = opts.Password
+		cfg.Redis.DB = opts.DB
+	} else {
+		// Fallback to individual environment variables or defaults
+		cfg.Redis.Addr = getEnv("REDIS_ADDR", "localhost:6379")
+		cfg.Redis.Password = getEnv("REDIS_PASSWORD", "")
+		cfg.Redis.DB = getEnvInt("REDIS_DB", 0)
+	}
 
 	// Telegram
 	cfg.Telegram.BotToken = getEnv("TELEGRAM_BOT_TOKEN", "")
