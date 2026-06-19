@@ -83,34 +83,28 @@ AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-T
 		})
 	})
 
-	// API Routes
+		// API Routes
 	api := app.Group("/api/v1")
 
-	// Public routes
+	// Public routes (NO auth)
 	api.Post("/auth/register", userHandler.Register)
 	api.Post("/auth/verify", middleware.ValidateInitData(cfg.Telegram.BotToken), userHandler.VerifyInitData)
 
-	// Protected routes
-	protected := api.Group("/")
+	// Bot routes (X-Bot-Service-Token only)
+	botRoutes := api.Group("/bot")
+	botRoutes.Use(middleware.BotAuthMiddleware(cfg.Security.BOTServiceToken))
+	botRoutes.Get("/wallets/:user_id/balance", walletHandler.GetBalance)
+	botRoutes.Get("/users/telegram/:telegram_id", userHandler.GetProfile)
+
+	// Protected routes (JWT only) - use "/p" prefix, NOT "/"
+	protected := api.Group("/p")
 	protected.Use(middleware.JWTMiddleware(cfg.Security.JWTSecret))
-
-	// User routes
 	protected.Get("/users/profile", userHandler.GetProfile)
-
-	// Wallet routes
 	protected.Get("/wallets/:user_id/balance", walletHandler.GetBalance)
 	protected.Get("/wallets/:user_id/history", walletHandler.GetHistory)
-
-	// Game routes
 	protected.Get("/games/active", gameHandler.GetActiveGame)
 	protected.Get("/games/:user_id/history", gameHandler.GetHistory)
 	protected.Get("/games/:user_id/stats", gameHandler.GetStats)
-    
-	// Bot service routes (no JWT, uses X-Bot-Service-Token)
-botRoutes := api.Group("/bot")
-botRoutes.Use(middleware.BotAuthMiddleware(cfg.Security.BOTServiceToken))
-botRoutes.Get("/wallets/:user_id/balance", walletHandler.GetBalance)
-botRoutes.Get("/users/telegram/:telegram_id", userHandler.GetProfile)  // if you added this
 	// WebSocket route
 	app.Use("/ws", func(c fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
