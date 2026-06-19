@@ -94,7 +94,7 @@ AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-T
 	botRoutes := api.Group("/bot")
 	botRoutes.Use(middleware.BotAuthMiddleware(cfg.Security.BOTServiceToken))
 	botRoutes.Get("/wallets/:user_id/balance", walletHandler.GetBalance)
-	botRoutes.Get("/users/telegram/:telegram_id", userHandler.GetProfile)
+	botRoutes.Get("/users/telegram/:telegram_id", userHandler.GetUserByTelegramID)
 
 	// Protected routes (JWT only) - use "/p" prefix, NOT "/"
 	protected := api.Group("/p")

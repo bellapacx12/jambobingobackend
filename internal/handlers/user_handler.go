@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"jambo-bingo/backend/internal/middleware"
 	"jambo-bingo/backend/internal/services"
@@ -114,5 +115,26 @@ func (h *UserHandler) VerifyInitData(c fiber.Ctx) error {
 		"token":    token,
 		"user":     user,
 		"telegram": userData,
+	})
+}
+func (h *UserHandler) GetUserByTelegramID(c fiber.Ctx) error {
+	telegramIDStr := c.Params("telegram_id")
+	telegramID, err := strconv.ParseInt(telegramIDStr, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid telegram_id",
+		})
+	}
+
+	user, err := h.userService.GetUserByTelegramID(c.Context(), telegramID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "user not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"user":    user,
 	})
 }
