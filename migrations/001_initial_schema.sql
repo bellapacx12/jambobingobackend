@@ -1,6 +1,15 @@
--- Enums for state tracking
-CREATE TYPE IF NOT EXISTS room_status AS ENUM ('lobby', 'active', 'resolution');
-CREATE TYPE IF NOT EXISTS match_outcome AS ENUM ('won', 'lost', 'spectated');
+-- Enums for state tracking (Wrapped in safe check blocks)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'room_status') THEN
+        CREATE TYPE room_status AS ENUM ('lobby', 'active', 'resolution');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'match_outcome') THEN
+        CREATE TYPE match_outcome AS ENUM ('won', 'lost', 'spectated');
+    END IF;
+END
+$$;
 
 -- Users & Authentication Profiles
 CREATE TABLE IF NOT EXISTS users (
