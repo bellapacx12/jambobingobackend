@@ -52,7 +52,7 @@ func main() {
 	go hub.Run()
 
 	// Initialize handlers
-	userHandler := handlers.NewUserHandler(userService)
+	userHandler := handlers.NewUserHandler(userService, cfg.Security.JWTSecret)
 	walletHandler := handlers.NewWalletHandler(walletService)
 	gameHandler := handlers.NewGameHandler(gameService)
 

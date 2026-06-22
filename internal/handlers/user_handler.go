@@ -14,10 +14,11 @@ import (
 
 type UserHandler struct {
 	userService *services.UserService
+	jwtSecret   string
 }
 
-func NewUserHandler(userService *services.UserService) *UserHandler {
-	return &UserHandler{userService: userService}
+func NewUserHandler(userService *services.UserService, jwtSecret string) *UserHandler {
+	return &UserHandler{userService: userService,  jwtSecret:   jwtSecret,}
 }
 
 // RegisterRequest represents the contact share payload
@@ -118,7 +119,7 @@ func (h *UserHandler) VerifyInitData(c fiber.Ctx) error {
 
 	// Generate JWT
 	// Note: In production, pass the actual secret from config
-	token, err := middleware.GenerateJWT(userData.ID, userData.Username, "change-me-in-production")
+	token, err := middleware.GenerateJWT(userData.ID, userData.Username, h.jwtSecret)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to generate token",
