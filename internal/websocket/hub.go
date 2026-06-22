@@ -706,7 +706,7 @@ func (h *Hub) handleRoomJoin(client *Client, event *WebSocketEvent) {
 	client.Username = username
 
 	ctx := context.Background()
-	room, err := h.GetOrCreateRoomForTier(ctx, event.Tier, 30*time.Second, 5)
+	room, err := h.GetOrCreateRoomForTier(ctx, event.Tier, 30*time.Second, 2)
 	if err != nil {
 		client.Send <- []byte(`{"event":"error","data":"failed to join room"}`)
 		return
