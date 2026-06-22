@@ -202,7 +202,8 @@ func (h *Hub) handleRegister(client *Client) {
 		},
 	})
 	client.Send <- tickerMsg
-
+    
+	log.Printf("DEBUG: Sending ticker to user %d: %s", client.UserID, string(tickerMsg))
 	// Selected cards snapshot
 	if len(selectedCards) > 0 {
 		cardsMsg, _ := json.Marshal(map[string]interface{}{
@@ -248,6 +249,7 @@ func (h *Hub) handleUnregister(client *Client) {
 }
 
 func (h *Hub) handleBroadcast(msg BroadcastMessage) {
+	  log.Printf("DEBUG: Broadcasting to room %s: %+v", msg.GameID, msg.Message)
 	h.mutex.RLock()
 	room, exists := h.rooms[msg.GameID]
 	h.mutex.RUnlock()
@@ -658,6 +660,7 @@ func (h *Hub) HandleWebSocket(c *websocket.Conn) {
 	go func() {
 		for msg := range client.Send {
 			if err := c.WriteMessage(websocket.TextMessage, msg); err != nil {
+				log.Printf("DEBUG: WriteMessage error for user %d: %v", client.UserID, err)
 				return
 			}
 		}
