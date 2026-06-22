@@ -68,7 +68,7 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:5173","http://localhost:3001",},
+		AllowOrigins: []string{"http://localhost:5173","http://localhost:3001","https://jambofrontend.vercel.app"},
 AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Telegram-Init-Data"},
 		AllowCredentials: true,
