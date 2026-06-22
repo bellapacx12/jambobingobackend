@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	"encoding/json"
+	"time"
 )
 
 // RoomStatus represents the current state of a game room
@@ -57,7 +57,7 @@ type GameSession struct {
 // UserCartela represents a player's selected board for a game
 type UserCartela struct {
 	ID             int           `json:"id" db:"id"`
-	UserID         int           `json:"user_id" db:"user_id"`
+	UserID         int64           `json:"user_id" db:"user_id"`
 	GameID         string        `json:"game_id" db:"game_id"`
 	CartelaNumber  int           `json:"cartela_number" db:"cartela_number"`
 	MatrixData     Matrix5x5     `json:"matrix_data" db:"matrix_data"`

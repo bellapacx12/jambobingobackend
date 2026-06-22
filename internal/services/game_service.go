@@ -228,7 +228,7 @@ func (s *GameService) AddBallCalled(ctx context.Context, gameID string, ball int
 }
 
 // ResolveGame marks a game as resolved with a winner
-func (s *GameService) ResolveGame(ctx context.Context, gameID string, winnerID int, winningCartela int) error {
+func (s *GameService) ResolveGame(ctx context.Context, gameID string, winnerID int64, winningCartela int) error {
 	_, err := s.db.Pool.Exec(ctx, `
 		UPDATE game_sessions 
 		SET status = 'resolution', winner_id = $1, winning_cartela = $2
@@ -310,7 +310,7 @@ func (s *GameService) GetPlayerStats(ctx context.Context, userID int) (*models.P
 }
 // SelectCard creates a cartela for a user WITHOUT deducting stake.
 // Stake is deducted later when the game actually starts.
-func (s *GameService) SelectCard(ctx context.Context, userID int, gameID string, cartelaNumber int) (*models.UserCartela, error) {
+func (s *GameService) SelectCard(ctx context.Context, userID int64, gameID string, cartelaNumber int) (*models.UserCartela, error) {
 	matrix := utils.GenerateCartelaMatrix()
 	matrixJSON, err := json.Marshal(matrix)
 	if err != nil {
@@ -353,7 +353,7 @@ func (s *GameService) SelectCard(ctx context.Context, userID int, gameID string,
 
 // DeductStakesAndStart deducts the stake from every ready player's wallet,
 // records transactions, and updates the game session prize pool.
-func (s *GameService) DeductStakesAndStart(ctx context.Context, gameID string, userIDs []int, stakeAmount int) error {
+func (s *GameService) DeductStakesAndStart(ctx context.Context, gameID string, userIDs []int64, stakeAmount int) error {
 	if len(userIDs) == 0 {
 		return fmt.Errorf("no players to start game")
 	}

@@ -22,7 +22,7 @@ import (
 
 type Client struct {
 	Conn       *websocket.Conn
-	UserID     int
+	UserID     int64
 	TelegramID int64
 	Username   string
 	GameID     string
@@ -34,8 +34,8 @@ type Room struct {
 	GameID        string
 	StakeAmount   int
 	Status        models.RoomStatus
-	Clients       map[int]*Client        // userID -> connection
-	SelectedCards map[int]*models.UserCartela // userID -> cartela (ready players)
+	Clients       map[int64]*Client        // userID -> connection
+	SelectedCards map[int64]*models.UserCartela // userID -> cartela (ready players)
 	CalledBalls   []int
 	CalledSet     map[int]bool
 	Ticker        *time.Ticker
@@ -289,8 +289,8 @@ func (h *Hub) CreateRoom(gameID string, stakeAmount int, lobbyDuration time.Dura
 		GameID:        gameID,
 		StakeAmount:   stakeAmount,
 		Status:        models.RoomStatusLobby,
-		Clients:       make(map[int]*Client),
-		SelectedCards: make(map[int]*models.UserCartela),
+		Clients:       make(map[int64]*Client),
+		SelectedCards: make(map[int64]*models.UserCartela),
 		CalledBalls:   []int{},
 		CalledSet:     make(map[int]bool),
 		StartTime:     time.Now(),
@@ -425,10 +425,10 @@ func (h *Hub) startGame(room *Room) {
 
 	// Collect all ready players
 	room.Mutex.RLock()
-	userIDs := make([]int, 0, len(room.SelectedCards))
-	for uid := range room.SelectedCards {
-		userIDs = append(userIDs, uid)
-	}
+	userIDs := make([]int64, 0, len(room.SelectedCards))
+for uid := range room.SelectedCards {
+    userIDs = append(userIDs, uid)
+}
 	room.Mutex.RUnlock()
 
 	// Deduct stakes from everyone who selected a card
@@ -708,7 +708,7 @@ func (h *Hub) handleRoomJoin(client *Client, event *WebSocketEvent) {
 
 	
 
-	client.UserID = int(claims.TelegramID) 
+	client.UserID = claims.TelegramID 
 	client.Username = claims.Username
 	ctx := context.Background()
 	room, err := h.GetOrCreateRoomForTier(ctx, event.Tier, 30*time.Second, 2)

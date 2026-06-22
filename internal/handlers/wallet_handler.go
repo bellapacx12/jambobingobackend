@@ -19,7 +19,7 @@ func NewWalletHandler(walletService *services.WalletService) *WalletHandler {
 // GetBalance returns the user's wallet balances
 func (h *WalletHandler) GetBalance(c fiber.Ctx) error {
 	userIDStr := c.Params("user_id")
-	userID, err := strconv.Atoi(userIDStr)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid user_id",

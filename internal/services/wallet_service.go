@@ -17,7 +17,7 @@ func NewWalletService(db *database.DB) *WalletService {
 }
 
 // GetWallet retrieves a user's wallet
-func (s *WalletService) GetWallet(ctx context.Context, userID int) (*models.Wallet, error) {
+func (s *WalletService) GetWallet(ctx context.Context, userID int64) (*models.Wallet, error) {
 	var wallet models.Wallet
 	err := s.db.Pool.QueryRow(ctx, `
 		SELECT user_id, main_balance, play_balance, updated_at
@@ -87,7 +87,7 @@ func (s *WalletService) DeductStake(ctx context.Context, userID int, amount floa
 }
 
 // CreditWin credits winnings to user's main balance
-func (s *WalletService) CreditWin(ctx context.Context, userID int, amount float64, gameID string) error {
+func (s *WalletService) CreditWin(ctx context.Context, userID int64, amount float64, gameID string) error {
 	tx, err := s.db.Pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
