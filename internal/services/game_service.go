@@ -308,3 +308,113 @@ func (s *GameService) GetPlayerStats(ctx context.Context, userID int) (*models.P
 
 	return &stats, nil
 }
+// SelectCard creates a cartela for a user WITHOUT deducting stake.
+// Stake is deducted later when the game actually starts.
+func (s *GameService) SelectCard(ctx context.Context, userID int, gameID string, cartelaNumber int) (*models.UserCartela, error) {
+	matrix := utils.GenerateCartelaMatrix()
+	matrixJSON, err := json.Marshal(matrix)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal matrix: %w", err)
+	}
+
+	var status string
+	err = s.db.Pool.QueryRow(ctx, `
+		SELECT status FROM game_sessions WHERE game_id = $1
+	`, gameID).Scan(&status)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get game: %w", err)
+	}
+	if status != string(models.RoomStatusLobby) {
+		return nil, fmt.Errorf("game is no longer accepting entries")
+	}
+
+	var existingID int
+	err = s.db.Pool.QueryRow(ctx, `
+		SELECT id FROM user_cartelas WHERE user_id = $1 AND game_id = $2
+	`, userID, gameID).Scan(&existingID)
+	if err == nil {
+		return nil, fmt.Errorf("user already has a cartela in this game")
+	}
+
+	var cartela models.UserCartela
+	err = s.db.Pool.QueryRow(ctx, `
+		INSERT INTO user_cartelas (user_id, game_id, cartela_number, matrix_data, outcome)
+		VALUES ($1, $2, $3, $4, 'lost')
+		RETURNING id, user_id, game_id, cartela_number, matrix_data, outcome
+	`, userID, gameID, cartelaNumber, matrixJSON).Scan(
+		&cartela.ID, &cartela.UserID, &cartela.GameID, &cartela.CartelaNumber, &cartela.MatrixData, &cartela.Outcome,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cartela: %w", err)
+	}
+
+	return &cartela, nil
+}
+
+// DeductStakesAndStart deducts the stake from every ready player's wallet,
+// records transactions, and updates the game session prize pool.
+func (s *GameService) DeductStakesAndStart(ctx context.Context, gameID string, userIDs []int, stakeAmount int) error {
+	if len(userIDs) == 0 {
+		return fmt.Errorf("no players to start game")
+	}
+
+	tx, err := s.db.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	prizePool := float64(len(userIDs) * stakeAmount) * 0.85
+
+	for _, userID := range userIDs {
+		var mainBalance, playBalance float64
+		err = tx.QueryRow(ctx, `
+			SELECT main_balance, play_balance FROM wallets WHERE user_id = $1 FOR UPDATE
+		`, userID).Scan(&mainBalance, &playBalance)
+		if err != nil {
+			return fmt.Errorf("failed to get wallet for user %d: %w", userID, err)
+		}
+
+		stakeFloat := float64(stakeAmount)
+		totalAvailable := mainBalance + playBalance
+		if totalAvailable < stakeFloat {
+			return fmt.Errorf("insufficient balance for user %d", userID)
+		}
+
+		newMain := mainBalance
+		newPlay := playBalance
+		if playBalance >= stakeFloat {
+			newPlay = playBalance - stakeFloat
+		} else {
+			remaining := stakeFloat - playBalance
+			newPlay = 0
+			newMain = mainBalance - remaining
+		}
+
+		_, err = tx.Exec(ctx, `
+			UPDATE wallets SET main_balance = $1, play_balance = $2, updated_at = NOW() WHERE user_id = $3
+		`, newMain, newPlay, userID)
+		if err != nil {
+			return fmt.Errorf("failed to update wallet for user %d: %w", userID, err)
+		}
+
+		_, err = tx.Exec(ctx, `
+			INSERT INTO transactions (user_id, type, amount, balance_after, game_id, description)
+			VALUES ($1, 'stake', $2, $3, $4, $5)
+		`, userID, -stakeFloat, newMain+newPlay, gameID, fmt.Sprintf("Stake for game %s", gameID))
+		if err != nil {
+			return fmt.Errorf("failed to record transaction for user %d: %w", userID, err)
+		}
+	}
+
+	_, err = tx.Exec(ctx, `
+		UPDATE game_sessions 
+		SET total_players = $1, prize_pool = $2, status = 'active'
+		WHERE game_id = $3
+	`, len(userIDs), prizePool, gameID)
+	if err != nil {
+		return fmt.Errorf("failed to update game session: %w", err)
+	}
+
+	return tx.Commit(ctx)
+}

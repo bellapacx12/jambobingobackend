@@ -48,7 +48,7 @@ func main() {
 	gameService := services.NewGameService(db, redis)
 
 	// Initialize WebSocket hub
-	hub := wshub.NewHub(db, redis, gameService, walletService)
+	hub := wshub.NewHub(db, redis, gameService, walletService, cfg.Security.JWTSecret)
 	go hub.Run()
 
 	// Initialize handlers
