@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 
 	"jambo-bingo/backend/internal/middleware"
@@ -75,7 +76,24 @@ func (h *UserHandler) GetProfile(c fiber.Ctx) error {
 func (h *UserHandler) VerifyInitData(c fiber.Ctx) error {
 	initData := c.Locals("initData")
 	userDataRaw := c.Locals("userData")
+    
+	// Check nil FIRST
+	if initData == nil || userDataRaw == nil {
+		log.Printf("DEBUG: initData is nil: %v, userDataRaw is nil: %v", initData == nil, userDataRaw == nil)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "invalid init data",
+		})
+	}
 
+	// NOW safe to type-assert and log
+	initDataStr, ok := initData.(string)
+	if ok && len(initDataStr) > 0 {
+		end := 50
+		if len(initDataStr) < 50 {
+			end = len(initDataStr)
+		}
+		log.Printf("DEBUG: initData length: %d, start: %s", len(initDataStr), initDataStr[:end])
+	}
 	if initData == nil || userDataRaw == nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "invalid init data",
