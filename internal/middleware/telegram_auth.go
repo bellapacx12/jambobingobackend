@@ -34,9 +34,9 @@ type Claims struct {
 // ValidateInitData validates Telegram WebApp initData using HMAC-SHA256
 func ValidateInitData(botToken string) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		initData := c.Get("X-Telegram-Init-Data")
+		initData := c.Get("X-Telegram-Init-Data", "")
 		if initData == "" {
-			initData = c.Query("initData")
+			initData = c.Query("initData", "")
 		}
 		if initData == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -44,7 +44,6 @@ func ValidateInitData(botToken string) fiber.Handler {
 			})
 		}
 
-		// Parse the initData query string
 		values, err := url.ParseQuery(initData)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -52,7 +51,6 @@ func ValidateInitData(botToken string) fiber.Handler {
 			})
 		}
 
-		// Extract the hash
 		receivedHash := values.Get("hash")
 		if receivedHash == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -61,7 +59,6 @@ func ValidateInitData(botToken string) fiber.Handler {
 		}
 		values.Del("hash")
 
-		// Build the data-check-string
 		var keys []string
 		for k := range values {
 			keys = append(keys, k)
@@ -72,12 +69,9 @@ func ValidateInitData(botToken string) fiber.Handler {
 		for _, k := range keys {
 			dataCheckParts = append(dataCheckParts, fmt.Sprintf("%s=%s", k, values.Get(k)))
 		}
-		dataCheckString := strings.Join(dataCheckParts, "")
+		dataCheckString := strings.Join(dataCheckParts, "\n")  // ← FIXED: was ""
 
-		// Compute HMAC-SHA256
-		// Step 1: HMAC-SHA256("WebAppData", bot_token)
 		secretKey := hmacSHA256("WebAppData", botToken)
-		// Step 2: HMAC-SHA256(secret_key, data_check_string)
 		computedHash := hex.EncodeToString(hmacSHA256Raw(secretKey, dataCheckString))
 
 		if !hmac.Equal([]byte(computedHash), []byte(receivedHash)) {
@@ -87,7 +81,6 @@ func ValidateInitData(botToken string) fiber.Handler {
 			})
 		}
 
-		// Check auth_date freshness (max 24 hours)
 		authDate := values.Get("auth_date")
 		if authDate != "" {
 			var timestamp int64
@@ -99,7 +92,6 @@ func ValidateInitData(botToken string) fiber.Handler {
 			}
 		}
 
-		// Parse user data
 		userData := values.Get("user")
 		if userData != "" {
 			c.Locals("initData", initData)

@@ -94,11 +94,7 @@ func (h *UserHandler) VerifyInitData(c fiber.Ctx) error {
 		}
 		log.Printf("DEBUG: initData length: %d, start: %s", len(initDataStr), initDataStr[:end])
 	}
-	if initData == nil || userDataRaw == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "invalid init data",
-		})
-	}
+	
 
 	var userData struct {
 		ID        int64  `json:"id"`
