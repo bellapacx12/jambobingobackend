@@ -97,7 +97,11 @@ type WinningMatrix struct {
 	HitNumbers        []int     `json:"hit_numbers"`
 	FullBoardSnapshot [5][5]int `json:"full_board_snapshot"`
 }
-
+type Claims struct {
+	TelegramID int64  `json:"telegram_id"`
+	Username   string `json:"username"`
+	jwt.RegisteredClaims
+}
 // ─── Constructor ───────────────────────────────────────────────────────────────
 
 func NewHub(db *database.DB, redis *database.RedisClient, gameSvc *services.GameService, walletSvc *services.WalletService, jwtSecret string) *Hub {
@@ -131,8 +135,8 @@ func (h *Hub) Run() {
 
 // ─── Token Parser ──────────────────────────────────────────────────────────────
 
-func (h *Hub) parseToken(tokenString string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func (h *Hub) parseToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -141,7 +145,7 @@ func (h *Hub) parseToken(tokenString string) (jwt.MapClaims, error) {
 	if err != nil {
 		return nil, err
 	}
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token claims")
 	}
@@ -702,12 +706,10 @@ func (h *Hub) handleRoomJoin(client *Client, event *WebSocketEvent) {
 		return
 	}
 
-	userID := int(claims["user_id"].(float64))
-	username, _ := claims["username"].(string)
+	
 
-	client.UserID = userID
-	client.Username = username
-
+	client.UserID = int(claims.TelegramID) 
+	client.Username = claims.Username
 	ctx := context.Background()
 	room, err := h.GetOrCreateRoomForTier(ctx, event.Tier, 30*time.Second, 2)
 	if err != nil {
